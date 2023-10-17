@@ -461,5 +461,11 @@ TSWLatexianTemp*
 # xwatermark package
 *.xwm
 
+# palm api key
+.api_key
+
 #MAC files
 .DS_Store
+
+#Data files
+job_descriptions.json
