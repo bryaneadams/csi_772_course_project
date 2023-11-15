@@ -19,3 +19,4 @@ scikit-learn
 SQLAlchemy
 psycopg2-binary
 pgvector
+openpyxl
