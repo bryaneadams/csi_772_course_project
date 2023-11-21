@@ -1,4 +1,5 @@
 import textwrap
+import re
 import numpy as np
 import pandas as pd
 import google.generativeai as palm
@@ -8,6 +9,108 @@ import langchain.schema
 from typing import List, Callable, Union
 
 from google.api_core import retry
+
+
+def remove_req_qual_str(text: str) -> str:
+    req_qual_str_to_remove = [
+        "Who May Apply: Only applicants who meet one of the employment authority categories below are eligible to apply for this job.",
+        "You will be asked to identify which category or categories you meet, and to provide documents which prove you meet the category or categories you selected. See Proof of Eligibility for an extensive list of document requirements for all employment authorities.",
+        "30 Percent or More Disabled Veterans",
+        "Current Department of Army Civilian Employees",
+        "Current Permanent Department of Defense (DOD) Civilian Employee (non-Army)",
+        "Domestic Defense Industrial Base/Major Range and Test Facilities Base Civilian Personnel Workforce",
+        "Interagency Career Transition Assistance Plan",
+        "Land Management Workforce Flexibility Act",
+        "Non-Department of Defense (DoD) Transfer",
+        "Office of Personnel Management (OPM) Interchange Agreement Eligible",
+        "Priority Placement Program, DoD Military Spouse Preference (MSP) Eligible",
+        "ReinstatementVeterans Employment Opportunity Act (VEOA) of 1998",
+        "Additional information about transcripts is in this document.",
+        "30 Percent or More Disabled Veterans",
+        "Current Department of Army Civilian Employees",
+        "Current Permanent Department of Defense (DOD) Civilian Employee (non-Army)",
+        "Executive Order (E.O.) 12721",
+        "Interagency Career Transition Assistance Plan",
+        "Military Spouses, under Executive Order (E.O.) 13473",
+        "Non-Appropriated Fund Instrumentality (NAFI)",
+        "Non-Department of Defense (DoD) Transfer",
+        "Priority Placement Program (PPP), Program S (Military Spouse) registrant",
+        "Reinstatement",
+        "Veterans Employment Opportunity Act (VEOA) of 1998",
+        "Domestic Defense Industrial Base/Major Range and Test Facilities Base Civilian Personnel Workforce",
+        "Land Management Workforce Flexibility Act",
+        "Office of Personnel Management (OPM) Interchange Agreement Eligible",
+        "Priority Placement Program, DoD Military Spouse Preference (MSP) Eligible",
+        "Current Department of Army Civilian Employees Applying to OCONUS Positions",
+        "Family Member Preference (FMP) for Overseas Employment",
+        "Military Spouse Preference (MSP) for Overseas Employment",
+        "Current Department of Defense (DOD) Civilian Employee (non-Army)",
+        "People with Disabilities, Schedule A",
+        "Interagency Career Transition Assistance Plan (ICTAP) Eligible",
+        "All U.S. Citizens and Nationals with allegiance to the United States",
+        "Veterans and Preference Eligible under Veterans Employment Opportunity Act (VEOA) of 1998",
+        "Current Civilian Employees of the Organization",
+        "Current Army Defense Civilian Intelligence Personnel System (DCIPS) Employee",
+        "Current DoD Defense Civilian Intelligence Personnel System (DCIPS) Employee (non-Army)",
+        "Defense Civilian Intelligence Personnel System (DCIPS) Interchange Agreement",
+        "Excepted Service Overseas Family Member Appointment",
+        "Land Management Workforce Flexibility Act Eligible",
+        "10-Point Other Veterans? Rating",
+        "5-Point Veterans' Preference",
+        "Disabled Veteran w/ a Service-Connected Disability, More than 10%, Less than 30%",
+        "Prior Federal Service Employee",
+        "United States Citizen Applying to a DCIPS Position",
+        "Current Defense Contract Management Agency Employee (DCMA)",
+        "Veterans Recruitment Appointment (VRA)",
+        "Proposal Evaluation (Contracting by Negotiation)",
+        "External Recruitment Military Spouse Preference",
+        "Current Defense Contract Management Agency (DCMA) Employee",
+        "Who May Apply: US Citizen",
+    ]
+
+    for string in req_qual_str_to_remove:
+        text = text.replace(string, "")
+
+    return text
+
+
+# "In order to qualify, you must meet the education and/or experience requirements described below.",
+# "In order to qualify, you must meet the experience requirements described below.",
+# "Experience refers to paid and unpaid experience, including volunteer work done through National Service programs (e.g., Peace Corps, AmeriCorps) and other organizations (e.g., professional; philanthropic; religious; spiritual; community; student; social). You will receive credit for all qualifying experience, including volunteer experience. Your resume must clearly describe your relevant experience; if qualifying based on education, your transcripts will be required as part of your application. ",
+
+
+def remove_html_tags(text: str) -> str:
+    """Text a string of html text and returns the text without the html tags
+
+    Args:
+        text (str): html string you want the tags removed from
+
+    Returns:
+        str: text with all html tags removed from it
+    """
+    clean = re.compile("<.*?>")
+    return re.sub(clean, "", text)
+
+
+def job_categories_to_string(value: str) -> str:
+    """Transforms the job categories to just the actual occupational series
+
+    Args:
+        value (str): The value from the 'job_categories'
+
+    Returns:
+        str: string that it returns with the OSCs in one comma separated string
+
+    Examples:
+        >>> job_categories_to_string("[{'series': '0808'}, {'series': '0810'}]")
+        '0808, 0810'
+    """
+    series_list = ast.literal_eval(value)
+    series_values = [item["series"] for item in series_list]
+    try:
+        return ", ".join(series_values)
+    except:
+        return None
 
 
 class VectorEmbeddings:
