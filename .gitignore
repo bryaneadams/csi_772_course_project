@@ -469,3 +469,5 @@ TSWLatexianTemp*
 
 #Data files
 job_descriptions.json
+data/*.json
+*~$*

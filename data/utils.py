@@ -10,6 +10,8 @@ from typing import List, Callable, Union
 
 from google.api_core import retry
 
+import ast
+
 
 def remove_req_qual_str(text: str) -> str:
     req_qual_str_to_remove = [

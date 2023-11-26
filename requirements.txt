@@ -20,3 +20,5 @@ SQLAlchemy
 psycopg2-binary
 pgvector
 openpyxl
+sentence_transformers
+torch
