@@ -471,3 +471,5 @@ TSWLatexianTemp*
 job_descriptions.json
 data/*.json
 *~$*
+uncased*
+.vscode

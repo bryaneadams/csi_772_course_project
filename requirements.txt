@@ -22,3 +22,5 @@ pgvector
 openpyxl
 sentence_transformers
 torch
+tensorflow
+tensorflow-text
